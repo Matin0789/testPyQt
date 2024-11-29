@@ -1,7 +1,8 @@
 # This Python file uses the following encoding: utf-8
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
+from PySide6.QtCore import QPropertyAnimation, QLine, QPoint
 
 from Tic_Tac_Toe import Tic_Tac_Toe
 # Important:
@@ -17,6 +18,8 @@ class Widget(QWidget):
         self.ui.setupUi(self)
         self.game = game
         self.btn = [[None for _ in range(game.col)] for _ in range(game.row)]
+        self.line = QLine(QPoint(0,0), QPoint(0,0))
+        self.anim = QPropertyAnimation(self, b"endLine")
 
         self.btn[0][0] = self.ui.btn_00
         self.btn[0][1] = self.ui.btn_01
@@ -37,8 +40,26 @@ class Widget(QWidget):
                 self.btn[row][col].setText('O')
             else :
                 self.btn[row][col].setText('X')
-        game.action(row, col)
+        result = game.action(row, col)
+        if result != None:
+            winner = result[0]
+            cal = lambda point : ((point + 1) * 100) / 2
+            startPoint = QPoint(cal(result[1][0]), cal(result[1][1]))
+            endPoint = QPoint(cal(result[2][0]), cal(result[2][1]))
 
+            self.anim.setDuration(1000)
+            self.anim.setStartValue(startPoint)
+            self.anim.setEndValue(endPoint)
+            self.anim.start()
+            endMessage = QMessageBox(self)
+            text = "player" + str(winner + 1) + " wins"
+            endMessage.setText(text)
+            endMessage.show()
+
+    def endLine(self, value):
+        self.line.setP2(value)
+        self.update()
+        return self.line.p2()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
